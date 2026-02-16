@@ -1,0 +1,804 @@
+{% extends "base.html" %}
+
+{% block title %}MedhAI+ - Adaptive Quiz{% endblock %}
+
+{% block extra_head %}
+<style>
+    .adaptive-status-bar {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+        box-shadow: 0 5px 15px rgba(17, 153, 142, 0.3);
+        animation: slideDown 0.5s ease;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .status-icon {
+        font-size: 1.5rem;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .status-message {
+        flex: 1;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .difficulty-badge {
+        background: rgba(255, 255, 255, 0.3);
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-weight: 600;
+    }
+    
+    .quiz-header-banner {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        color: white;
+        text-align: center;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+    
+    #currentDifficultyDisplay {
+        display: inline-block;
+        padding: 0.3rem 1rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        animation: difficultyPulse 0.6s ease;
+    }
+    
+    @keyframes difficultyPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    
+    .quiz-timer {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+    
+    .question-card {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        min-height: 400px;
+        animation: slideIn 0.4s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .question-topic {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .question-number {
+        color: #888;
+        font-weight: 600;
+    }
+    
+    .question-text {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+    
+    .options-container {
+        display: grid;
+        gap: 1rem;
+    }
+    
+    .option-label {
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 1.2rem 1.5rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+    
+    .option-label:hover {
+        border-color: #667eea;
+        background: #f8f9ff;
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+    }
+    
+    .option-label.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, #667eea15, #764ba215);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+    
+    .option-label input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+    }
+    
+    .option-text {
+        flex: 1;
+        font-size: 1.1rem;
+        color: #2c3e50;
+        padding-left: 2.5rem;
+        position: relative;
+    }
+    
+    .option-text::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 24px;
+        height: 24px;
+        border: 2px solid #ddd;
+        border-radius: 50%;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    
+    .option-label.selected .option-text::before {
+        border-color: #667eea;
+        background: #667eea;
+        box-shadow: inset 0 0 0 4px white;
+    }
+    
+    .option-check {
+        opacity: 0;
+        color: #667eea;
+        font-size: 1.3rem;
+        transition: all 0.3s ease;
+    }
+    
+    .option-label.selected .option-check {
+        opacity: 1;
+    }
+    
+    .quiz-progress {
+        margin-bottom: 2rem;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-bottom: 0.5rem;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 10px;
+        transition: width 0.4s ease;
+        box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
+    }
+    
+    .progress-text {
+        text-align: center;
+        color: #666;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .quiz-navigation {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 2rem;
+        gap: 1rem;
+    }
+    
+    .answer-summary {
+        display: grid;
+        grid-template-columns: repeat(10, 1fr);
+        gap: 0.5rem;
+        margin: 1.5rem 0;
+    }
+    
+    .answer-dot {
+        width: 100%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+    
+    .answer-dot.answered {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .answer-dot.correct-answer {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+    }
+    
+    .answer-dot.wrong-answer {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        color: white;
+    }
+    
+    .answer-dot.current {
+        transform: scale(1.2);
+        box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+    }
+    
+    .answer-dot:hover {
+        transform: scale(1.15);
+    }
+    
+    .difficulty-indicator {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid white;
+    }
+    
+    .diff-easy {
+        background: #38ef7d;
+    }
+    
+    .diff-medium {
+        background: #f39c12;
+    }
+    
+    .diff-hard {
+        background: #e74c3c;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Quiz Header Banner -->
+    <div class="quiz-header-banner">
+        <h1><i class="fas fa-brain"></i> ML-Powered Adaptive Quiz</h1>
+        <p style="font-size: 1.2rem; margin: 0.5rem 0;">
+            Current Difficulty: <strong id="currentDifficultyDisplay">{{ starting_difficulty }}</strong>
+        </p>
+        <p style="font-size: 0.95rem; opacity: 0.9; margin: 0.3rem 0;">
+            <i class="fas fa-magic"></i> Difficulty adapts in real-time based on your performance
+        </p>
+        <div class="quiz-timer" id="quizTimer">
+            <i class="fas fa-clock"></i>
+            <span id="timeElapsed">00:00</span>
+        </div>
+    </div>
+
+    <!-- Adaptive Status Bar -->
+    <div class="adaptive-status-bar" id="adaptiveStatus" style="display: none;">
+        <div class="status-icon">
+            <i class="fas fa-robot"></i>
+        </div>
+        <div class="status-message" id="adaptiveMessage">
+            Analyzing your performance...
+        </div>
+    </div>
+
+    <div class="card quiz-card">
+        <!-- Loading State -->
+        <div id="quizLoading" class="loading-indicator">
+            <div class="spinner"></div>
+            <p>Loading your personalized quiz questions...</p>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quizContainer" style="display: none;">
+            <!-- Progress Bar -->
+            <div class="quiz-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+                </div>
+                <p class="progress-text">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">10</span></p>
+            </div>
+
+            <!-- Answer Summary Dots -->
+            <div class="answer-summary" id="answerSummary">
+                <!-- Dots will be generated by JavaScript -->
+            </div>
+
+            <!-- Question Container -->
+            <div id="questionContainer" class="question-container">
+                <!-- Questions will be loaded here dynamically -->
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="quiz-navigation">
+                <button id="prevBtn" class="btn btn-secondary" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> Previous
+                </button>
+                <button id="nextBtn" class="btn btn-primary">
+                    Next <i class="fas fa-arrow-right"></i>
+                </button>
+                <button id="submitBtn" class="btn btn-success" style="display: none;">
+                    <i class="fas fa-paper-plane"></i> Submit Quiz
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let allQuestions = []; // All loaded questions across difficulties
+    let currentQuestionPool = []; // Current 10 questions for the quiz
+    let currentQuestionIndex = 0;
+    let userAnswers = {};
+    let questionDifficulties = {}; // Track difficulty for each question
+    let currentDifficulty = "{{ starting_difficulty }}";
+    let startTime = null;
+    let timerInterval = null;
+    let performanceData = {
+        correct: 0,
+        total: 0,
+        currentScore: 0
+    };
+
+    console.log("🎯 Quiz starting with difficulty:", currentDifficulty);
+
+    // Start timer
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const seconds = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('timeElapsed').textContent = `${minutes}:${seconds}`;
+        }, 1000);
+    }
+
+    // Load questions when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAllQuestions();
+    });
+
+    async function loadAllQuestions() {
+        try {
+            // Load all difficulty levels
+            const difficulties = ['Easy', 'Medium', 'Hard'];
+            const questionPromises = difficulties.map(diff => 
+                fetch('/get_questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ difficulty: diff })
+                }).then(r => r.json())
+            );
+            
+            const results = await Promise.all(questionPromises);
+            
+            // Store all questions with difficulty tags
+            results.forEach((data, index) => {
+                const diff = difficulties[index];
+                data.questions.forEach(q => {
+                    q.difficulty = diff;
+                    allQuestions.push(q);
+                });
+            });
+            
+            // Select initial 10 questions based on starting difficulty
+            selectQuestionsForDifficulty(currentDifficulty);
+            
+            document.getElementById('quizLoading').style.display = 'none';
+            document.getElementById('quizContainer').style.display = 'block';
+            document.getElementById('totalQuestions').textContent = currentQuestionPool.length;
+            createAnswerSummary();
+            displayQuestion(0);
+            startTimer();
+            
+        } catch (error) {
+            alert('Error loading questions: ' + error.message);
+        }
+    }
+
+    function selectQuestionsForDifficulty(difficulty) {
+        console.log(`🔍 Selecting questions for difficulty: ${difficulty}`);
+        console.log(`📚 Total questions loaded: ${allQuestions.length}`);
+        
+        // Filter questions by difficulty
+        const filteredQuestions = allQuestions.filter(q => q.difficulty === difficulty);
+        console.log(`✅ Found ${filteredQuestions.length} questions for ${difficulty}`);
+        
+        // Select up to 10 questions
+        currentQuestionPool = filteredQuestions.slice(0, 10);
+        console.log(`📝 Selected ${currentQuestionPool.length} questions for quiz`);
+        
+        // Track which difficulty each question belongs to
+        currentQuestionPool.forEach((q, index) => {
+            questionDifficulties[index] = q.difficulty;
+        });
+    }
+
+    async function adaptDifficulty(lastAnswerCorrect) {
+        try {
+            const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+            
+            const response = await fetch('/adaptive_next_question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    current_difficulty: currentDifficulty,
+                    last_answer_correct: lastAnswerCorrect,
+                    questions_answered: performanceData.total,
+                    current_score: performanceData.currentScore,
+                    time_spent: timeSpent
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.difficulty_changed) {
+                // Difficulty changed! Update UI and load new questions
+                const oldDifficulty = currentDifficulty;
+                currentDifficulty = data.next_difficulty;
+                
+                console.log(`🤖 ML Adaptation: ${oldDifficulty} → ${currentDifficulty} (Confidence: ${data.confidence}%)`);
+                console.log(`📊 Reason: ${data.reasoning}`);
+                
+                // Update difficulty display with animation
+                const diffDisplay = document.getElementById('currentDifficultyDisplay');
+                diffDisplay.style.animation = 'none';
+                setTimeout(() => {
+                    diffDisplay.textContent = currentDifficulty;
+                    diffDisplay.style.animation = 'difficultyPulse 0.6s ease';
+                }, 10);
+                
+                // Show enhanced adaptive message
+                const changeIcon = oldDifficulty < currentDifficulty ? '📈' : '📉';
+                const enhancedMessage = `${changeIcon} ${data.adaptive_message} (${oldDifficulty} → ${currentDifficulty})`;
+                showAdaptiveMessage(enhancedMessage);
+                
+                // Load next question from new difficulty pool
+                await loadNextAdaptiveQuestion(currentDifficulty);
+            } else if (response.ok) {
+                console.log(`✅ Keeping difficulty: ${currentDifficulty} (${data.reasoning})`);
+            }
+            
+        } catch (error) {
+            console.error('Adaptation error:', error);
+        }
+    }
+
+    async function loadNextAdaptiveQuestion(difficulty) {
+        console.log(`🔄 Switching remaining questions to ${difficulty} difficulty`);
+        
+        // Find questions from the new difficulty that haven't been used
+        const availableQuestions = allQuestions.filter(q => 
+            q.difficulty === difficulty && 
+            !currentQuestionPool.slice(0, currentQuestionIndex + 1).some(used => used.id === q.id)
+        );
+        
+        console.log(`📚 Available ${difficulty} questions: ${availableQuestions.length}`);
+        
+        if (availableQuestions.length > 0) {
+            // Replace ALL remaining questions with new difficulty
+            let replacementIndex = 0;
+            for (let i = currentQuestionIndex + 1; i < currentQuestionPool.length && replacementIndex < availableQuestions.length; i++) {
+                currentQuestionPool[i] = availableQuestions[replacementIndex];
+                questionDifficulties[i] = difficulty;
+                replacementIndex++;
+                console.log(`✅ Replaced question ${i + 1} with ${difficulty} question`);
+            }
+            updateAnswerSummary();
+        } else {
+            console.log(`⚠️ No more ${difficulty} questions available, keeping current pool`);
+        }
+    }
+
+    function showAdaptiveMessage(message) {
+        const statusBar = document.getElementById('adaptiveStatus');
+        const messageEl = document.getElementById('adaptiveMessage');
+        
+        messageEl.textContent = message;
+        statusBar.style.display = 'flex';
+        
+        // Add pulse animation
+        statusBar.style.animation = 'none';
+        setTimeout(() => {
+            statusBar.style.animation = 'pulse 0.5s ease';
+        }, 10);
+        
+        // Hide after 6 seconds (increased from 4)
+        setTimeout(() => {
+            statusBar.style.opacity = '0';
+            setTimeout(() => {
+                statusBar.style.display = 'none';
+                statusBar.style.opacity = '1';
+            }, 300);
+        }, 6000);
+    }
+
+    function createAnswerSummary() {
+        const summaryContainer = document.getElementById('answerSummary');
+        summaryContainer.innerHTML = '';
+        
+        currentQuestionPool.forEach((q, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'answer-dot';
+            dot.id = `dot-${index}`;
+            dot.textContent = index + 1;
+            
+            // Add difficulty indicator
+            const diffIndicator = document.createElement('div');
+            diffIndicator.className = `difficulty-indicator diff-${(questionDifficulties[index] || 'Medium').toLowerCase()}`;
+            dot.appendChild(diffIndicator);
+            
+            dot.onclick = () => {
+                if (index <= currentQuestionIndex) {
+                    displayQuestion(index);
+                }
+            };
+            summaryContainer.appendChild(dot);
+        });
+    }
+
+    function updateAnswerSummary() {
+        currentQuestionPool.forEach((q, index) => {
+            const dot = document.getElementById(`dot-${index}`);
+            if (!dot) return;
+            
+            dot.classList.remove('current', 'answered', 'correct-answer', 'wrong-answer');
+            
+            // Update difficulty indicator
+            const existingIndicator = dot.querySelector('.difficulty-indicator');
+            if (existingIndicator) {
+                existingIndicator.className = `difficulty-indicator diff-${(questionDifficulties[index] || 'Medium').toLowerCase()}`;
+            }
+            
+            if (userAnswers[q.id]) {
+                dot.classList.add('answered');
+            }
+            
+            if (index === currentQuestionIndex) {
+                dot.classList.add('current');
+            }
+        });
+    }
+
+    function displayQuestion(index) {
+        if (index >= currentQuestionPool.length) return;
+        
+        const question = currentQuestionPool[index];
+        const container = document.getElementById('questionContainer');
+        
+        // Update progress
+        currentQuestionIndex = index;
+        document.getElementById('currentQuestion').textContent = index + 1;
+        const progress = ((index + 1) / currentQuestionPool.length) * 100;
+        document.getElementById('progressBar').style.width = progress + '%';
+        
+        // Update answer summary
+        updateAnswerSummary();
+        
+        // Build question HTML
+        let html = `
+            <div class="question-card">
+                <div class="question-header">
+                    <span class="question-topic">${question.topic} - ${question.difficulty}</span>
+                    <span class="question-number">Question ${index + 1} of ${currentQuestionPool.length}</span>
+                </div>
+                <h3 class="question-text">${question.question}</h3>
+                <div class="options-container">
+        `;
+        
+        question.options.forEach((option, i) => {
+            const checked = userAnswers[question.id] === option ? 'checked' : '';
+            const selected = userAnswers[question.id] === option ? 'selected' : '';
+            html += `
+                <label class="option-label ${selected}">
+                    <input type="radio" name="question_${question.id}" value="${option}" ${checked}
+                           onchange="selectAnswer(${question.id}, this.value, '${question.answer}')">
+                    <span class="option-text">${option}</span>
+                    <span class="option-check"><i class="fas fa-check-circle"></i></span>
+                </label>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+        
+        container.innerHTML = html;
+        
+        // Update navigation buttons
+        updateNavigation();
+        
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function selectAnswer(questionId, answer, correctAnswer) {
+        const wasAnswered = userAnswers[questionId] !== undefined;
+        const previousAnswer = userAnswers[questionId];
+        
+        userAnswers[questionId] = answer;
+        
+        // Update visual selection
+        document.querySelectorAll(`input[name="question_${questionId}"]`).forEach(input => {
+            const label = input.closest('.option-label');
+            if (input.value === answer) {
+                label.classList.add('selected');
+            } else {
+                label.classList.remove('selected');
+            }
+        });
+        
+        // Calculate if answer is correct
+        const isCorrect = answer === correctAnswer;
+        
+        // Update performance tracking (only if it's a new answer or changed answer)
+        if (!wasAnswered) {
+            performanceData.total++;
+            if (isCorrect) {
+                performanceData.correct++;
+            }
+        } else if (previousAnswer !== answer) {
+            // Answer was changed
+            const wasPreviousCorrect = previousAnswer === correctAnswer;
+            if (wasPreviousCorrect && !isCorrect) {
+                performanceData.correct--;
+            } else if (!wasPreviousCorrect && isCorrect) {
+                performanceData.correct++;
+            }
+        }
+        
+        // Update current score
+        performanceData.currentScore = (performanceData.correct / performanceData.total) * 100;
+        
+        // Update answer summary
+        updateAnswerSummary();
+        
+        // Trigger ML adaptation after answer (only if new answer and not last question)
+        if (!wasAnswered && currentQuestionIndex < currentQuestionPool.length - 1) {
+            await adaptDifficulty(isCorrect);
+        }
+    }
+
+    function updateNavigation() {
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Show/hide previous button
+        prevBtn.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+        
+        // Show/hide next/submit buttons
+        if (currentQuestionIndex === currentQuestionPool.length - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+        } else {
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    // Navigation event listeners
+    document.getElementById('prevBtn').addEventListener('click', function() {
+        if (currentQuestionIndex > 0) {
+            displayQuestion(currentQuestionIndex - 1);
+        }
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', function() {
+        if (currentQuestionIndex < currentQuestionPool.length - 1) {
+            displayQuestion(currentQuestionIndex + 1);
+        }
+    });
+
+    document.getElementById('submitBtn').addEventListener('click', function() {
+        submitQuiz();
+    });
+
+    async function submitQuiz() {
+        // Check if all questions are answered
+        const answeredCount = Object.keys(userAnswers).length;
+        if (answeredCount < currentQuestionPool.length) {
+            const unanswered = currentQuestionPool.length - answeredCount;
+            if (!confirm(`You have ${unanswered} unanswered question(s). Submit anyway?`)) {
+                return;
+            }
+        }
+        
+        // Stop timer
+        clearInterval(timerInterval);
+        const timeSpent = Math.floor((Date.now() - startTime) / 1000);
+        
+        // Show loading
+        document.getElementById('submitBtn').disabled = true;
+        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        
+        try {
+            const response = await fetch('/submit_quiz', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    answers: userAnswers,
+                    difficulty: currentDifficulty,
+                    time_spent: timeSpent,
+                    questions: currentQuestionPool
+                })
+            });
+
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Store result and redirect to result page
+                localStorage.setItem('quizResult', JSON.stringify(result));
+                localStorage.setItem('quizDifficulty', currentDifficulty);
+                localStorage.setItem('quizTimeSpent', timeSpent);
+                window.location.href = '/result';
+            } else {
+                alert('Error submitting quiz: ' + result.error);
+                document.getElementById('submitBtn').disabled = false;
+                document.getElementById('submitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+            document.getElementById('submitBtn').disabled = false;
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit Quiz';
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block title %}MedhAI+ - Quiz Results Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    .dashboard-container {
+        padding: 2rem 0;
+    }
+    
+    .score-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 3rem 2rem;
+        border-radius: 20px;
+        text-align: center;
+        color: white;
+        margin-bottom: 2rem;
+        box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+    }
+    
+    .score-circle {
+        width: 180px;
+        height: 180px;
+        margin: 0 auto 1.5rem;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        font-weight: 700;
+        border: 8px solid rgba(255, 255, 255, 0.3);
+        animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .score-label {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 1rem;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+    }
+    
+    .stat-icon.correct {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+    }
+    
+    .stat-icon.incorrect {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        color: white;
+    }
+    
+    .stat-icon.time {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .stat-icon.difficulty {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+    
+    .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        color: #7f8c8d;
+        font-weight: 500;
+    }
+    
+    .performance-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .performance-bar {
+        margin-bottom: 1rem;
+    }
+    
+    .perf-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        color: #555;
+        font-weight: 600;
+    }
+    
+    .perf-bar-track {
+        height: 30px;
+        background: #f0f0f0;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .perf-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 10px;
+        color: white;
+        font-weight: 600;
+        transition: width 1s ease;
+    }
+    
+    .recommendation-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+    }
+    
+    .recommendation-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+    
+    .recommendation-title {
+        font-size: 1.8rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+    }
+    
+    .recommendation-text {
+        font-size: 1.1rem;
+        color: #555;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    
+    .next-steps {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 10px;
+    }
+    
+    .next-steps-title {
+        font-size: 1.3rem;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .next-steps-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .next-steps-list li {
+        padding: 0.5rem 0;
+        color: #555;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .next-steps-list li i {
+        color: #667eea;
+        margin-top: 0.25rem;
+    }
+    
+    .action-buttons-dashboard {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+    
+    .badge-achievement {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-weight: 600;
+        margin: 0.25rem;
+    }
+    
+    .badge-excellent {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white;
+    }
+    
+    .badge-good {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .badge-needs-improvement {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+    <!-- Score Hero Section -->
+    <div class="score-hero" id="scoreHero">
+        <div class="score-circle" id="scoreCircle">
+            <span id="scorePercentage">0%</span>
+        </div>
+        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Quiz Complete!</h1>
+        <p class="score-label">Your Performance Score</p>
+        <div id="achievementBadges" style="margin-top: 1rem;">
+            <!-- Badges will be added by JavaScript -->
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon correct">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="stat-value" id="correctCount">0</div>
+            <div class="stat-label">Correct Answers</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon incorrect">
+                <i class="fas fa-times"></i>
+            </div>
+            <div class="stat-value" id="incorrectCount">0</div>
+            <div class="stat-label">Incorrect Answers</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon time">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="stat-value" id="timeSpent">0:00</div>
+            <div class="stat-label">Time Spent</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon difficulty">
+                <i class="fas fa-layer-group"></i>
+            </div>
+            <div class="stat-value" id="difficultyLevel">-</div>
+            <div class="stat-label">Quiz Difficulty</div>
+        </div>
+    </div>
+
+    <!-- Performance Breakdown -->
+    <div class="performance-section">
+        <h2 class="section-title">
+            <i class="fas fa-chart-bar"></i>
+            Performance Breakdown
+        </h2>
+        
+        <div class="performance-bar">
+            <div class="perf-label">
+                <span>Accuracy Rate</span>
+                <span id="accuracyRate">0%</span>
+            </div>
+            <div class="perf-bar-track">
+                <div class="perf-bar-fill" id="accuracyBar" style="width: 0%">
+                    <span id="accuracyBarText"></span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="performance-bar">
+            <div class="perf-label">
+                <span>Completion Rate</span>
+                <span id="completionRate">0%</span>
+            </div>
+            <div class="perf-bar-track">
+                <div class="perf-bar-fill" id="completionBar" style="width: 0%;" style="background: linear-gradient(90deg, #11998e, #38ef7d);">
+                    <span id="completionBarText"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendation Card -->
+    <div class="recommendation-card" id="recommendationCard">
+        <div class="recommendation-icon" id="recIcon">
+            <i class="fas fa-lightbulb"></i>
+        </div>
+        <h2 class="recommendation-title" id="recTitle">Keep Learning!</h2>
+        <p class="recommendation-text" id="recText">
+            Great effort! Continue practicing to improve your skills.
+        </p>
+        
+        <div class="next-steps">
+            <h3 class="next-steps-title">
+                <i class="fas fa-compass"></i>
+                Recommended Next Steps
+            </h3>
+            <ul class="next-steps-list" id="nextStepsList">
+                <!-- Steps will be added by JavaScript -->
+            </ul>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons-dashboard">
+        <a href="/" class="btn btn-primary btn-lg">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+        <button id="retryQuizBtn" class="btn btn-success btn-lg">
+            <i class="fas fa-redo"></i> Retake ML-Adaptive Quiz
+        </button>
+        <a href="/dashboard" class="btn btn-info btn-lg">
+            <i class="fas fa-chart-line"></i> View Progress Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Get quiz results from server-side template or localStorage fallback
+    console.log("🎯 Result page loaded");
+    
+    let quizResult = {};
+    let difficulty = 'Medium';
+    let timeSpent = 0;
+    
+    {% if quiz_result %}
+    try {
+        console.log("✅ Server data available");
+        quizResult = {{ quiz_result | tojson | safe }};
+        difficulty = "{{ quiz_result.difficulty | default('Medium') }}";
+        timeSpent = {{ quiz_result.time_spent | default(0) }};
+        console.log("Server quizResult:", quizResult);
+    } catch(e) {
+        console.error("Error parsing server data:", e);
+    }
+    {% else %}
+    console.log("⚠️ No server data, checking localStorage");
+    try {
+        quizResult = JSON.parse(localStorage.getItem('quizResult') || '{}');
+        difficulty = localStorage.getItem('quizDifficulty') || 'Medium';
+        timeSpent = parseInt(localStorage.getItem('quizTimeSpent') || '0');
+        console.log("📦 localStorage data:", quizResult);
+    } catch(e) {
+        console.error("Error parsing localStorage:", e);
+    }
+    {% endif %}
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("📊 DOMContentLoaded fired");
+        console.log("quizResult keys:", Object.keys(quizResult));
+        console.log("quizResult empty?", Object.keys(quizResult).length === 0);
+        
+        // Check if we have valid data
+        if (!quizResult || Object.keys(quizResult).length === 0) {
+            console.error("❌ No result data available!");
+            alert("No quiz results found. Please take a quiz first.");
+            window.location.href = '/';
+            return;
+        }
+        
+        console.log("✅ Valid data found, calling displayResults()");
+        displayResults();
+    });
+
+    function displayResults() {
+        console.log("📊 displayResults called");
+        console.log("Full quizResult object:", JSON.stringify(quizResult, null, 2));
+        console.log("Difficulty:", difficulty);
+        console.log("Time spent:", timeSpent);
+        
+        const score = quizResult.score || 0;
+        const correct = quizResult.correct || 0;
+        const total = quizResult.total || 10;
+        const incorrect = total - correct;
+        
+        console.log(`Extracted values: score=${score}, correct=${correct}, total=${total}, incorrect=${incorrect}`);
+        
+        // Animate score
+        animateScore(score);
+        
+        // Update stats
+        console.log("Setting correctCount to:", correct);
+        document.getElementById('correctCount').textContent = correct;
+        console.log("Setting incorrectCount to:", incorrect);
+        document.getElementById('incorrectCount').textContent = incorrect;
+        console.log("Setting difficultyLevel to:", difficulty);
+        document.getElementById('difficultyLevel').textContent = difficulty;
+        
+        // Format and display time
+        const minutes = Math.floor(timeSpent / 60);
+        const seconds = timeSpent % 60;
+        document.getElementById('timeSpent').textContent = 
+            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Update performance bars with animation
+        setTimeout(() => {
+            const accuracyRate = score;
+            const completionRate = quizResult.completion_rate || 100;
+            
+            document.getElementById('accuracyRate').textContent = accuracyRate.toFixed(1) + '%';
+            document.getElementById('accuracyBar').style.width = accuracyRate + '%';
+            document.getElementById('accuracyBarText').textContent = accuracyRate.toFixed(1) + '%';
+            
+            document.getElementById('completionRate').textContent = completionRate.toFixed(1) + '%';
+            document.getElementById('completionBar').style.width = completionRate + '%';
+            document.getElementById('completionBarText').textContent = completionRate.toFixed(1) + '%';
+        }, 500);
+        
+        // Display achievement badges
+        displayAchievements(score, correct, total, timeSpent);
+        
+        // Display recommendation
+        const feedback = quizResult.feedback || 'Great effort!';
+        const nextAction = quizResult.next_action || 'continue';
+        displayRecommendation(score, nextAction, feedback);
+        
+        // Setup retry button
+        document.getElementById('retryQuizBtn').onclick = () => {
+            localStorage.removeItem('quizResult');
+            // Go back to home to get new ML prediction, then quiz
+            window.location.href = '/';
+        };
+    }
+
+    function animateScore(targetScore) {
+        const scoreElement = document.getElementById('scorePercentage');
+        const duration = 2000;
+        const steps = 60;
+        const increment = targetScore / steps;
+        let current = 0;
+        
+        const interval = setInterval(() => {
+            current += increment;
+            if (current >= targetScore) {
+                current = targetScore;
+                clearInterval(interval);
+            }
+            scoreElement.textContent = Math.round(current) + '%';
+            
+            // Change color based on score
+            const scoreCircle = document.getElementById('scoreCircle');
+            if (current >= 80) {
+                scoreCircle.style.borderColor = '#38ef7d';
+            } else if (current >= 60) {
+                scoreCircle.style.borderColor = '#f39c12';
+            } else {
+                scoreCircle.style.borderColor = '#f45c43';
+            }
+        }, duration / steps);
+    }
+    
+    function displayAchievements(score, correct, total, time) {
+        console.log("🏆 displayAchievements called with:", {score, correct, total, time});
+        const badgesContainer = document.getElementById('achievementBadges');
+        const badges = [];
+        
+        if (score >= 90) {
+            badges.push('<span class="badge-achievement badge-excellent"><i class="fas fa-trophy"></i> Outstanding!</span>');
+        } else if (score >= 80) {
+            badges.push('<span class="badge-achievement badge-excellent"><i class="fas fa-star"></i> Excellent</span>');
+        } else if (score >= 70) {
+            badges.push('<span class="badge-achievement badge-good"><i class="fas fa-thumbs-up"></i> Good Job</span>');
+        } else if (score >= 60) {
+            badges.push('<span class="badge-achievement badge-good"><i class="fas fa-check"></i> Passed</span>');
+        } else {
+            badges.push('<span class="badge-achievement badge-needs-improvement"><i class="fas fa-book"></i> Keep Learning</span>');
+        }
+        
+        if (correct === total) {
+            badges.push('<span class="badge-achievement badge-excellent"><i class="fas fa-crown"></i> Perfect Score!</span>');
+        }
+        
+        if (time < 180) { // Less than 3 minutes
+            badges.push('<span class="badge-achievement badge-good"><i class="fas fa-bolt"></i> Speed Master</span>');
+        }
+        
+        badgesContainer.innerHTML = badges.join('');
+    }
+
+    function displayRecommendation(score, nextAction, feedback) {
+        const recIcon = document.getElementById('recIcon');
+        const recTitle = document.getElementById('recTitle');
+        const recText = document.getElementById('recText');
+        const nextStepsList = document.getElementById('nextStepsList');
+        
+        let icon, title, text, steps;
+        
+        if (score >= 80) {
+            icon = '<i class="fas fa-trophy" style="color: #f39c12;"></i>';
+            title = 'Excellent Performance!';
+            text = feedback || 'Outstanding work! You\'ve demonstrated strong mastery of the material. You\'re ready for more challenging content.';
+            steps = [
+                'Try a harder difficulty level to challenge yourself further',
+                'Explore advanced topics in this subject area',
+                'Help others by sharing your knowledge',
+                'Take on real-world projects to apply your skills'
+            ];
+        } else if (score >= 60) {
+            icon = '<i class="fas fa-smile" style="color: #667eea;"></i>';
+            title = 'Good Job!';
+            text = feedback || 'You\'re making solid progress! With a bit more practice, you\'ll master these concepts.';
+            steps = [
+                'Review the questions you got wrong',
+                'Practice similar problems to reinforce concepts',
+                'Retake the quiz to improve your score',
+                'Focus on understanding, not just memorization'
+            ];
+        } else {
+            icon = '<i class="fas fa-book-reader" style="color: #f45c43;"></i>';
+            title = 'Keep Learning!';
+            text = feedback || 'Learning is a journey! Focus on understanding the fundamentals, and you\'ll improve quickly.';
+            steps = [
+                'Review the course materials thoroughly',
+                'Start with easier difficulty to build confidence',
+                'Break down complex topics into smaller parts',
+                'Don\'t hesitate to ask for help when needed',
+                'Practice regularly to reinforce learning'
+            ];
+        }
+        
+        recIcon.innerHTML = icon;
+        recTitle.textContent = title;
+        recText.textContent = text;
+        
+        nextStepsList.innerHTML = steps.map(step => 
+            `<li><i class="fas fa-arrow-right"></i> ${step}</li>`
+        ).join('');
+    }
+</script>
+{% endblock %}

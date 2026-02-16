@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "question": "What is the square root of 144?",
+    "options": ["10", "11", "12", "13"],
+    "answer": "12",
+    "topic": "Mathematics"
+  },
+  {
+    "id": 2,
+    "question": "Who wrote 'Romeo and Juliet'?",
+    "options": ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
+    "answer": "William Shakespeare",
+    "topic": "Literature"
+  },
+  {
+    "id": 3,
+    "question": "What is the chemical symbol for water?",
+    "options": ["H2O", "O2", "CO2", "H2O2"],
+    "answer": "H2O",
+    "topic": "Chemistry"
+  },
+  {
+    "id": 4,
+    "question": "In which year did World War II end?",
+    "options": ["1943", "1944", "1945", "1946"],
+    "answer": "1945",
+    "topic": "History"
+  },
+  {
+    "id": 5,
+    "question": "What is the largest ocean on Earth?",
+    "options": ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
+    "answer": "Pacific Ocean",
+    "topic": "Geography"
+  },
+  {
+    "id": 6,
+    "question": "What is 15% of 200?",
+    "options": ["25", "30", "35", "40"],
+    "answer": "30",
+    "topic": "Mathematics"
+  },
+  {
+    "id": 7,
+    "question": "Which gas do plants absorb from the atmosphere?",
+    "options": ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"],
+    "answer": "Carbon Dioxide",
+    "topic": "Biology"
+  },
+  {
+    "id": 8,
+    "question": "What is the capital of Japan?",
+    "options": ["Beijing", "Seoul", "Tokyo", "Bangkok"],
+    "answer": "Tokyo",
+    "topic": "Geography"
+  },
+  {
+    "id": 9,
+    "question": "Who painted the Mona Lisa?",
+    "options": ["Vincent van Gogh", "Pablo Picasso", "Leonardo da Vinci", "Michelangelo"],
+    "answer": "Leonardo da Vinci",
+    "topic": "Art"
+  },
+  {
+    "id": 10,
+    "question": "What is the speed of light (approximately)?",
+    "options": ["300,000 km/s", "150,000 km/s", "450,000 km/s", "600,000 km/s"],
+    "answer": "300,000 km/s",
+    "topic": "Physics"
+  }
+]

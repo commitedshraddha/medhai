@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+
+{% block title %}MedhAI+ - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="hero-content">
+        <h1 class="hero-title">
+            <i class="fas fa-graduation-cap"></i>
+            Welcome to MedhAI+
+        </h1>
+        <p class="hero-subtitle">AI-Driven Predictive Adaptive Learning System</p>
+        <p class="hero-description">
+            Get personalized learning paths and adaptive quiz recommendations based on your performance
+        </p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card prediction-card">
+        <div class="card-header">
+            <h2><i class="fas fa-user-graduate"></i> Enter Your Learning Metrics</h2>
+            <p>Fill in your details to get a personalized learning path recommendation</p>
+        </div>
+        
+        <form id="predictionForm" class="prediction-form">
+            <!-- Quiz Score -->
+            <div class="form-group">
+                <label for="quiz_score">
+                    <i class="fas fa-clipboard-check"></i> Quiz Score
+                </label>
+                <input 
+                    type="number" 
+                    id="quiz_score" 
+                    name="quiz_score" 
+                    min="0" 
+                    max="100" 
+                    step="1"
+                    placeholder="Enter your recent quiz score (0-100)"
+                    required
+                >
+                <small class="form-hint">Your average quiz performance</small>
+            </div>
+
+            <!-- Final Exam Score -->
+            <div class="form-group">
+                <label for="final_exam_score">
+                    <i class="fas fa-certificate"></i> Final Exam Score
+                </label>
+                <input 
+                    type="number" 
+                    id="final_exam_score" 
+                    name="final_exam_score" 
+                    min="0" 
+                    max="100" 
+                    step="1"
+                    placeholder="Enter your exam score (0-100)"
+                    required
+                >
+                <small class="form-hint">Your most recent exam result</small>
+            </div>
+
+            <!-- Engagement Level -->
+            <div class="form-group">
+                <label for="engagement_level">
+                    <i class="fas fa-fire"></i> Engagement Level
+                </label>
+                <input 
+                    type="number" 
+                    id="engagement_level" 
+                    name="engagement_level" 
+                    min="1" 
+                    max="10" 
+                    step="1"
+                    placeholder="Rate your engagement (1-10)"
+                    required
+                >
+                <small class="form-hint">How engaged are you? (1 = Low, 10 = High)</small>
+            </div>
+
+            <!-- Exercise Completion -->
+            <div class="form-group">
+                <label for="exercise_completion">
+                    <i class="fas fa-tasks"></i> Exercise Completion Rate
+                </label>
+                <input 
+                    type="number" 
+                    id="exercise_completion" 
+                    name="exercise_completion" 
+                    min="0" 
+                    max="100" 
+                    step="1"
+                    placeholder="Completion percentage (0-100)"
+                    required
+                >
+                <small class="form-hint">Percentage of exercises completed</small>
+            </div>
+
+            <!-- Time Spent -->
+            <div class="form-group">
+                <label for="time_spent">
+                    <i class="fas fa-clock"></i> Time Spent on Platform
+                </label>
+                <input 
+                    type="number" 
+                    id="time_spent" 
+                    name="time_spent" 
+                    min="0" 
+                    max="24" 
+                    step="0.1"
+                    placeholder="Hours spent learning"
+                    required
+                >
+                <small class="form-hint">Average daily learning hours</small>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary" id="predictBtn">
+                <i class="fas fa-magic"></i> Predict Learning Path
+            </button>
+        </form>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing your learning patterns...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <div class="result-header">
+                <h3><i class="fas fa-lightbulb"></i> Your Personalized Recommendation</h3>
+            </div>
+            
+            <div class="result-content">
+                <!-- Learning Path Badge -->
+                <div class="result-badge" id="pathBadge">
+                    <span id="pathName"></span>
+                </div>
+
+                <!-- Difficulty Level -->
+                <div class="result-item">
+                    <i class="fas fa-layer-group"></i>
+                    <strong>Recommended Quiz Difficulty:</strong>
+                    <span id="difficultyLevel"></span>
+                </div>
+
+                <!-- Confidence Score -->
+                <div class="result-item">
+                    <i class="fas fa-chart-pie"></i>
+                    <strong>Prediction Confidence:</strong>
+                    <span id="confidenceScore"></span>
+                </div>
+
+                <!-- Recommendation Text -->
+                <div class="recommendation-box">
+                    <i class="fas fa-comment-dots"></i>
+                    <p id="recommendationText"></p>
+                </div>
+
+                <!-- Probability Breakdown -->
+                <div class="probability-section">
+                    <h4>Prediction Breakdown:</h4>
+                    <div class="probability-bars">
+                        <div class="prob-item">
+                            <span>Remedial Support</span>
+                            <div class="prob-bar">
+                                <div class="prob-fill" id="probRemedial" style="width: 0%"></div>
+                            </div>
+                            <span id="probRemedialText">0%</span>
+                        </div>
+                        <div class="prob-item">
+                            <span>Continue Current</span>
+                            <div class="prob-bar">
+                                <div class="prob-fill" id="probContinue" style="width: 0%"></div>
+                            </div>
+                            <span id="probContinueText">0%</span>
+                        </div>
+                        <div class="prob-item">
+                            <span>Advance</span>
+                            <div class="prob-bar">
+                                <div class="prob-fill" id="probAdvance" style="width: 0%"></div>
+                            </div>
+                            <span id="probAdvanceText">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a id="takeQuizBtn" href="/quiz" class="btn btn-success">
+                        <i class="fas fa-play"></i> Start ML-Adaptive Quiz
+                    </a>
+                    <button onclick="location.reload()" class="btn btn-secondary">
+                        <i class="fas fa-redo"></i> New Prediction
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="features-grid">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h3>AI-Powered</h3>
+            <p>Machine learning algorithms analyze your performance to provide accurate predictions</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+            <h3>Adaptive Learning</h3>
+            <p>Quiz difficulty adjusts dynamically based on your skill level and progress</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Progress Tracking</h3>
+            <p>Visualize your learning journey with comprehensive analytics and insights</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Form submission handler for prediction
+    document.getElementById('predictionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading indicator
+        document.getElementById('loadingIndicator').style.display = 'block';
+        document.getElementById('resultsSection').style.display = 'none';
+        document.getElementById('predictBtn').disabled = true;
+        
+        // Collect form data
+        const formData = {
+            quiz_score: parseFloat(document.getElementById('quiz_score').value),
+            final_exam_score: parseFloat(document.getElementById('final_exam_score').value),
+            engagement_level: parseFloat(document.getElementById('engagement_level').value),
+            exercise_completion: parseFloat(document.getElementById('exercise_completion').value),
+            time_spent: parseFloat(document.getElementById('time_spent').value)
+        };
+        
+        try {
+            // Make prediction request
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                // Display results
+                displayResults(result);
+            } else {
+                alert('Error: ' + (result.error || 'Prediction failed'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        } finally {
+            // Hide loading indicator
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('predictBtn').disabled = false;
+        }
+    });
+    
+    function displayResults(result) {
+        // Update result elements
+        document.getElementById('pathName').textContent = result.learning_path;
+        document.getElementById('pathBadge').style.backgroundColor = result.color;
+        document.getElementById('difficultyLevel').textContent = result.difficulty;
+        document.getElementById('confidenceScore').textContent = result.confidence + '%';
+        document.getElementById('recommendationText').textContent = result.recommendation;
+        
+        // Update probability bars
+        updateProbabilityBar('probRemedial', 'probRemedialText', result.probabilities.remedial);
+        updateProbabilityBar('probContinue', 'probContinueText', result.probabilities.continue);
+        updateProbabilityBar('probAdvance', 'probAdvanceText', result.probabilities.advance);
+        
+        // Quiz button is already set to /quiz - no need to change
+        
+        // Show results section with animation
+        const resultsSection = document.getElementById('resultsSection');
+        resultsSection.style.display = 'block';
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function updateProbabilityBar(barId, textId, percentage) {
+        document.getElementById(barId).style.width = percentage + '%';
+        document.getElementById(textId).textContent = percentage + '%';
+    }
+</script>
+{% endblock %}

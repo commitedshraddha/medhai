@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "question": "What is the derivative of x² with respect to x?",
+    "options": ["x", "2x", "x²", "2x²"],
+    "answer": "2x",
+    "topic": "Calculus"
+  },
+  {
+    "id": 2,
+    "question": "Which element has the atomic number 79?",
+    "options": ["Silver", "Platinum", "Gold", "Mercury"],
+    "answer": "Gold",
+    "topic": "Chemistry"
+  },
+  {
+    "id": 3,
+    "question": "Who developed the theory of general relativity?",
+    "options": ["Isaac Newton", "Albert Einstein", "Stephen Hawking", "Niels Bohr"],
+    "answer": "Albert Einstein",
+    "topic": "Physics"
+  },
+  {
+    "id": 4,
+    "question": "What is the time complexity of binary search?",
+    "options": ["O(n)", "O(log n)", "O(n²)", "O(n log n)"],
+    "answer": "O(log n)",
+    "topic": "Computer Science"
+  },
+  {
+    "id": 5,
+    "question": "In which year was the Magna Carta signed?",
+    "options": ["1066", "1215", "1492", "1776"],
+    "answer": "1215",
+    "topic": "History"
+  },
+  {
+    "id": 6,
+    "question": "What is the powerhouse of the cell?",
+    "options": ["Nucleus", "Ribosome", "Mitochondria", "Endoplasmic Reticulum"],
+    "answer": "Mitochondria",
+    "topic": "Biology"
+  },
+  {
+    "id": 7,
+    "question": "What is the value of π (pi) to 5 decimal places?",
+    "options": ["3.14159", "3.14259", "3.15159", "3.13159"],
+    "answer": "3.14159",
+    "topic": "Mathematics"
+  },
+  {
+    "id": 8,
+    "question": "Which programming paradigm does Python primarily support?",
+    "options": ["Functional only", "Object-oriented only", "Multi-paradigm", "Procedural only"],
+    "answer": "Multi-paradigm",
+    "topic": "Computer Science"
+  },
+  {
+    "id": 9,
+    "question": "What is the Heisenberg Uncertainty Principle related to?",
+    "options": ["Classical Mechanics", "Thermodynamics", "Quantum Mechanics", "Electromagnetism"],
+    "answer": "Quantum Mechanics",
+    "topic": "Physics"
+  },
+  {
+    "id": 10,
+    "question": "Who wrote 'The Republic'?",
+    "options": ["Aristotle", "Socrates", "Plato", "Homer"],
+    "answer": "Plato",
+    "topic": "Philosophy"
+  }
+]

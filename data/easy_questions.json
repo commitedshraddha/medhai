@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "question": "What is 2 + 2?",
+    "options": ["3", "4", "5", "6"],
+    "answer": "4",
+    "topic": "Basic Math"
+  },
+  {
+    "id": 2,
+    "question": "Which planet is closest to the Sun?",
+    "options": ["Venus", "Earth", "Mercury", "Mars"],
+    "answer": "Mercury",
+    "topic": "Science"
+  },
+  {
+    "id": 3,
+    "question": "What is the capital of France?",
+    "options": ["London", "Berlin", "Paris", "Madrid"],
+    "answer": "Paris",
+    "topic": "Geography"
+  },
+  {
+    "id": 4,
+    "question": "How many days are there in a week?",
+    "options": ["5", "6", "7", "8"],
+    "answer": "7",
+    "topic": "General Knowledge"
+  },
+  {
+    "id": 5,
+    "question": "What color do you get when you mix red and blue?",
+    "options": ["Green", "Purple", "Orange", "Brown"],
+    "answer": "Purple",
+    "topic": "Art"
+  },
+  {
+    "id": 6,
+    "question": "What is 10 - 3?",
+    "options": ["6", "7", "8", "9"],
+    "answer": "7",
+    "topic": "Basic Math"
+  },
+  {
+    "id": 7,
+    "question": "Which animal is known as 'Man's Best Friend'?",
+    "options": ["Cat", "Dog", "Horse", "Rabbit"],
+    "answer": "Dog",
+    "topic": "General Knowledge"
+  },
+  {
+    "id": 8,
+    "question": "How many vowels are there in the English alphabet?",
+    "options": ["3", "4", "5", "6"],
+    "answer": "5",
+    "topic": "English"
+  },
+  {
+    "id": 9,
+    "question": "What is the opposite of 'hot'?",
+    "options": ["Warm", "Cool", "Cold", "Freezing"],
+    "answer": "Cold",
+    "topic": "English"
+  },
+  {
+    "id": 10,
+    "question": "What shape has three sides?",
+    "options": ["Square", "Circle", "Triangle", "Rectangle"],
+    "answer": "Triangle",
+    "topic": "Geometry"
+  }
+]

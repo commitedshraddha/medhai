@@ -1,0 +1,16 @@
+# MedhAI+ - Adaptive Learning System
+# Python Dependencies
+
+# Web Framework
+Flask==3.0.0
+Werkzeug==3.0.1
+
+# Machine Learning
+scikit-learn==1.3.2
+numpy==1.26.2
+pandas==2.1.3
+
+# Additional dependencies that come with scikit-learn
+joblib==1.3.2
+scipy==1.11.4
+threadpoolctl==3.2.0

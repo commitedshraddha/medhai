@@ -1,0 +1,373 @@
+{% extends "base.html" %}
+
+{% block title %}MedhAI+ - Dashboard{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+    <div class="dashboard-header">
+        <h1><i class="fas fa-chart-line"></i> Learning Analytics Dashboard</h1>
+        <p>Track your progress and visualize your learning journey</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="totalQuizzes">0</h3>
+                <p>Total Quizzes</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="averageScore">0%</h3>
+                <p>Average Score</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-trophy"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="currentPath">-</h3>
+                <p>Current Path</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="currentStreak">0</h3>
+                <p>Day Streak</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-grid">
+        <!-- Score Progress Chart -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-line"></i> Score Progress</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="scoreChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Engagement Chart -->
+        <div class="card chart-card">
+            <div class="card-header">
+                <h3><i class="fas fa-heartbeat"></i> Engagement Trend</h3>
+            </div>
+            <div class="chart-container">
+                <canvas id="engagementChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Path Progress -->
+    <div class="card path-card">
+        <div class="card-header">
+            <h3><i class="fas fa-route"></i> Learning Path Progression</h3>
+        </div>
+        <div class="path-timeline" id="pathTimeline">
+            <!-- Timeline will be dynamically generated -->
+        </div>
+    </div>
+
+    <!-- Performance Breakdown -->
+    <div class="card performance-card">
+        <div class="card-header">
+            <h3><i class="fas fa-pie-chart"></i> Performance Breakdown</h3>
+        </div>
+        <div class="chart-container">
+            <canvas id="performanceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="dashboard-actions">
+        <a href="/" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Prediction
+        </a>
+        <a href="/quiz?difficulty=Medium" class="btn btn-success">
+            <i class="fas fa-play"></i> Take Quiz
+        </a>
+        <button onclick="resetProgress()" class="btn btn-secondary">
+            <i class="fas fa-trash"></i> Reset Progress
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let scoreChart, engagementChart, performanceChart;
+
+    // Load dashboard data on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+        try {
+            const response = await fetch('/dashboard_data');
+            const data = await response.json();
+
+            if (response.ok) {
+                updateStatistics(data);
+                createScoreChart(data);
+                createEngagementChart(data);
+                createPerformanceChart(data);
+                createPathTimeline(data);
+            } else {
+                console.error('Error loading dashboard data:', data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
+    function updateStatistics(data) {
+        // Update stat cards
+        document.getElementById('totalQuizzes').textContent = data.total_quizzes || 0;
+        document.getElementById('averageScore').textContent = (data.average_score || 0) + '%';
+        
+        // Get current path (most recent)
+        const currentPath = data.paths && data.paths.length > 0 
+            ? data.paths[data.paths.length - 1] 
+            : 'Not Started';
+        document.getElementById('currentPath').textContent = currentPath;
+        
+        // Calculate streak (simplified)
+        document.getElementById('currentStreak').textContent = data.total_quizzes || 0;
+    }
+
+    function createScoreChart(data) {
+        const ctx = document.getElementById('scoreChart').getContext('2d');
+        
+        if (scoreChart) {
+            scoreChart.destroy();
+        }
+
+        scoreChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: 'Quiz Score (%)',
+                    data: data.scores || [],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 6,
+                    pointHoverRadius: 8,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createEngagementChart(data) {
+        const ctx = document.getElementById('engagementChart').getContext('2d');
+        
+        if (engagementChart) {
+            engagementChart.destroy();
+        }
+
+        engagementChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels || [],
+                datasets: [{
+                    label: 'Engagement Level',
+                    data: data.engagement || [],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)',
+                        'rgba(255, 206, 86, 0.8)',
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(153, 102, 255, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createPerformanceChart(data) {
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        
+        if (performanceChart) {
+            performanceChart.destroy();
+        }
+
+        // Count path occurrences
+        const paths = data.paths || [];
+        const pathCounts = {
+            'Remedial': 0,
+            'Continue': 0,
+            'Advance': 0
+        };
+
+        paths.forEach(path => {
+            if (path.includes('Remedial')) pathCounts['Remedial']++;
+            else if (path.includes('Continue')) pathCounts['Continue']++;
+            else if (path.includes('Advance')) pathCounts['Advance']++;
+        });
+
+        performanceChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Remedial Support', 'Continue Current', 'Advance'],
+                datasets: [{
+                    data: [pathCounts['Remedial'], pathCounts['Continue'], pathCounts['Advance']],
+                    backgroundColor: [
+                        '#e74c3c',
+                        '#f39c12',
+                        '#27ae60'
+                    ],
+                    borderWidth: 3,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.parsed || 0;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function createPathTimeline(data) {
+        const timeline = document.getElementById('pathTimeline');
+        timeline.innerHTML = '';
+
+        const paths = data.paths || [];
+        const difficulties = data.difficulties || [];
+
+        if (paths.length === 0) {
+            timeline.innerHTML = '<p class="no-data">No learning path data available yet. Complete your first prediction to see your progress!</p>';
+            return;
+        }
+
+        paths.forEach((path, index) => {
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+
+            let color = '#f39c12';
+            if (path.includes('Remedial')) color = '#e74c3c';
+            else if (path.includes('Advance')) color = '#27ae60';
+
+            timelineItem.innerHTML = `
+                <div class="timeline-marker" style="background-color: ${color};">
+                    <i class="fas fa-${path.includes('Advance') ? 'arrow-up' : path.includes('Remedial') ? 'arrow-down' : 'minus'}"></i>
+                </div>
+                <div class="timeline-content">
+                    <h4>${path}</h4>
+                    <p>Difficulty: ${difficulties[index] || 'Medium'}</p>
+                    <small>Assessment ${index + 1}</small>
+                </div>
+            `;
+
+            timeline.appendChild(timelineItem);
+        });
+    }
+
+    async function resetProgress() {
+        if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+            try {
+                await fetch('/reset_session');
+                location.reload();
+            } catch (error) {
+                alert('Error resetting progress: ' + error.message);
+            }
+        }
+    }
+</script>
+{% endblock %}
